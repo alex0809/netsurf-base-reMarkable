@@ -26,6 +26,7 @@
 #include <libnsfb_plot.h>
 #include <libnsfb_event.h>
 #include <libnsfb_cursor.h>
+#include <stdlib.h>
 
 #include "utils/log.h"
 #include "netsurf/browser_window.h"
@@ -37,6 +38,12 @@
 #include "widget.h"
 
 /* Vertical scroll widget */
+
+// Minimum change is always given as page increment
+#define HSCROLL_REDRAW_MINIMUM_CHANGE 0.2
+#define VSCROLL_REDRAW_MINIMUM_CHANGE 0.2
+int hscroll_last_draw_pos = 0;
+int vscroll_last_draw_pos = 0;
 
 static int
 vscroll_redraw(fbtk_widget_t *widget, fbtk_callback_info *cbi)
@@ -109,6 +116,14 @@ vscroll_drag(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 	if (newpos == scrollw->u.scroll.position)
 		return 0;
 
+	double vscroll_rel = (double)abs(newpos - vscroll_last_draw_pos) /
+			     scrollw->u.scroll.thumb;
+	if (newpos != scrollw->u.scroll.minimum &&
+	    newpos != (scrollw->u.scroll.maximum - scrollw->u.scroll.thumb) &&
+	    vscroll_rel < VSCROLL_REDRAW_MINIMUM_CHANGE)
+		return 0;
+
+	vscroll_last_draw_pos = newpos;
 	return fbtk_post_callback(widget, FBTK_CBT_SCROLLY, newpos);
 }
 
@@ -408,6 +423,14 @@ hscroll_drag(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 	if (newpos == scrollw->u.scroll.position)
 		return 0;
 
+	double hscroll_rel = (double)abs(newpos - hscroll_last_draw_pos) /
+			     scrollw->u.scroll.page;
+	if (newpos != scrollw->u.scroll.minimum &&
+	    newpos != (scrollw->u.scroll.maximum - scrollw->u.scroll.thumb) &&
+	    hscroll_rel < HSCROLL_REDRAW_MINIMUM_CHANGE)
+		return 0;
+
+	hscroll_last_draw_pos = newpos;
 	return fbtk_post_callback(widget, FBTK_CBT_SCROLLX, newpos);
 }
 
