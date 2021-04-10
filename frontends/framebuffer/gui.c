@@ -46,6 +46,7 @@
 
 #include "framebuffer/gui.h"
 #include "framebuffer/fbtk.h"
+#include "framebuffer/fbtk/widget.h"
 #include "framebuffer/framebuffer.h"
 #include "framebuffer/schedule.h"
 #include "framebuffer/findfile.h"
@@ -122,6 +123,24 @@ static nserror fb_warn_user(const char *warning, const char *detail)
 {
 	NSLOG(netsurf, INFO, "%s %s", warning, detail);
 	return NSERROR_OK;
+}
+
+/**
+ * Calculates the width that the bitmap should be displayed as, so it has the correct aspect ratio
+ * If the height is negative, it will be added to parent-width, which is then used as the reference width
+ *
+ * \param[in] bmp the bitmap to be displayed
+ * \param[in] height the height of the bitmap
+ * \param[in] parent the parent of the bitmap
+ */
+static int fb_bitmap_scaled_width(struct fbtk_bitmap *bmp, int height, fbtk_widget_t *parent)
+{
+	if (height < 0) {
+		height = parent->height + height;
+	}
+    double scale_factor = (float)height / bmp->height;
+    NSLOG(netsurf, INFO, "scaler factor: %f", scale_factor);
+    return bmp->width * scale_factor;
 }
 
 /* queue a redraw operation, co-ordinates are relative to the window */
@@ -1245,6 +1264,7 @@ create_toolbar(struct gui_window *gw,
 	int xlhs = 0; /* extent of the left hand side widgets */
 	int xdir = 1; /* the direction of movement + or - 1 */
 	const char *itmtype; /* type of the next item */
+    int scaled_width; /* the width scaled so the image is rendered in the correct aspect ratio */
 
 	if (toolbar_layout == NULL) {
 		toolbar_layout = NSFB_TOOLBAR_DEFAULT_LAYOUT;
@@ -1290,11 +1310,12 @@ create_toolbar(struct gui_window *gw,
 		switch (*itmtype) {
 
 		case 'b': /* back */
+            scaled_width = fb_bitmap_scaled_width(&left_arrow, -padding, toolbar);
 			widget = fbtk_create_button(toolbar, 
 						    (xdir == 1) ? xpos : 
-						     xpos - left_arrow.width, 
+						     xpos - scaled_width,
 						    padding, 
-						    left_arrow.width, 
+						    scaled_width,
 						    -padding, 
 						    frame_col, 
 						    &left_arrow, 
@@ -1304,11 +1325,12 @@ create_toolbar(struct gui_window *gw,
 			break;
 
 		case 'l': /* local history */
+            scaled_width = fb_bitmap_scaled_width(&history_image, -padding, toolbar);
 			widget = fbtk_create_button(toolbar,
 						    (xdir == 1) ? xpos : 
-						     xpos - history_image.width,
+						     xpos - scaled_width,
 						    padding,
-						    history_image.width,
+						    scaled_width,
 						    -padding,
 						    frame_col,
 						    &history_image,
@@ -1318,11 +1340,12 @@ create_toolbar(struct gui_window *gw,
 			break;
 
 		case 'f': /* forward */
+            scaled_width = fb_bitmap_scaled_width(&right_arrow, -padding, toolbar);
 			widget = fbtk_create_button(toolbar,
 						    (xdir == 1)?xpos : 
-						     xpos - right_arrow.width,
+						     xpos - scaled_width,
 						    padding,
-						    right_arrow.width,
+						    scaled_width,
 						    -padding,
 						    frame_col,
 						    &right_arrow,
@@ -1332,11 +1355,12 @@ create_toolbar(struct gui_window *gw,
 			break;
 
 		case 'c': /* close the current window */
+            scaled_width = fb_bitmap_scaled_width(&stop_image, -padding, toolbar);
 			widget = fbtk_create_button(toolbar,
 						    (xdir == 1)?xpos : 
-						     xpos - stop_image_g.width,
+						     xpos - scaled_width,
 						    padding,
-						    stop_image_g.width,
+						    scaled_width,
 						    -padding,
 						    frame_col,
 						    &stop_image_g,
@@ -1346,11 +1370,12 @@ create_toolbar(struct gui_window *gw,
 			break;
 
 		case 's': /* stop  */
+            scaled_width = fb_bitmap_scaled_width(&stop_image, -padding, toolbar);
 			widget = fbtk_create_button(toolbar,
 						    (xdir == 1)?xpos : 
-						     xpos - stop_image.width,
+						     xpos - scaled_width,
 						    padding,
-						    stop_image.width,
+						    scaled_width,
 						    -padding,
 						    frame_col,
 						    &stop_image,
@@ -1360,11 +1385,12 @@ create_toolbar(struct gui_window *gw,
 			break;
 
 		case 'r': /* reload */
+            scaled_width = fb_bitmap_scaled_width(&reload, -padding, toolbar);
 			widget = fbtk_create_button(toolbar,
 						    (xdir == 1)?xpos : 
-						     xpos - reload.width,
+						     xpos - scaled_width,
 						    padding,
-						    reload.width,
+						    scaled_width,
 						    -padding,
 						    frame_col,
 						    &reload,
@@ -1374,11 +1400,12 @@ create_toolbar(struct gui_window *gw,
 			break;
 
 		case 't': /* throbber/activity indicator */
+            scaled_width = fb_bitmap_scaled_width(&throbber0, -padding, toolbar);
 			widget = fbtk_create_bitmap(toolbar,
 						    (xdir == 1)?xpos : 
-						     xpos - throbber0.width,
+						     xpos - scaled_width,
 						    padding,
-						    throbber0.width,
+						    scaled_width,
 						    -padding,
 						    frame_col, 
 						    &throbber0);
@@ -1470,6 +1497,7 @@ resize_toolbar(struct gui_window *gw,
 	int xdir = 1; /* the direction of movement + or - 1 */
 	const char *itmtype; /* type of the next item */
 	int x = 0, y = 0, w = 0, h = 0;
+    int scaled_width; /* the width scaled so the image is rendered in the correct aspect ratio */
 
 	if (gw->toolbar == NULL) {
 		return;
@@ -1499,57 +1527,64 @@ resize_toolbar(struct gui_window *gw,
 		switch (*itmtype) {
 		case 'b': /* back */
 			widget = gw->back;
-			x = (xdir == 1) ? xpos : xpos - left_arrow.width;
+            scaled_width = fb_bitmap_scaled_width(&left_arrow, -padding, gw->toolbar);
+			x = (xdir == 1) ? xpos : xpos - scaled_width;
 			y = padding;
-			w = left_arrow.width;
+			w = scaled_width;
 			h = -padding;
 			break;
 
 		case 'l': /* local history */
 			widget = gw->history;
-			x = (xdir == 1) ? xpos : xpos - history_image.width;
+            scaled_width = fb_bitmap_scaled_width(&history_image, -padding, gw->toolbar);
+			x = (xdir == 1) ? xpos : xpos - scaled_width;
 			y = padding;
-			w = history_image.width;
+			w = scaled_width;
 			h = -padding;
 			break;
 
 		case 'f': /* forward */
 			widget = gw->forward;
-			x = (xdir == 1) ? xpos : xpos - right_arrow.width;
+            scaled_width = fb_bitmap_scaled_width(&right_arrow, -padding, gw->toolbar);
+			x = (xdir == 1) ? xpos : xpos - scaled_width;
 			y = padding;
-			w = right_arrow.width;
+			w = scaled_width;
 			h = -padding;
 			break;
 
 		case 'c': /* close the current window */
 			widget = gw->close;
-			x = (xdir == 1) ? xpos : xpos - stop_image_g.width;
+            scaled_width = fb_bitmap_scaled_width(&stop_image, -padding, gw->toolbar);
+			x = (xdir == 1) ? xpos : xpos - scaled_width;
 			y = padding;
-			w = stop_image_g.width;
+			w = scaled_width;
 			h = -padding;
 			break;
 
 		case 's': /* stop  */
 			widget = gw->stop;
-			x = (xdir == 1) ? xpos : xpos - stop_image.width;
+            scaled_width = fb_bitmap_scaled_width(&stop_image, -padding, gw->toolbar);
+			x = (xdir == 1) ? xpos : xpos - scaled_width;
 			y = padding;
-			w = stop_image.width;
+			w = scaled_width;
 			h = -padding;
 			break;
 
 		case 'r': /* reload */
 			widget = gw->reload;
-			x = (xdir == 1) ? xpos : xpos - reload.width;
+            scaled_width = fb_bitmap_scaled_width(&reload, -padding, gw->toolbar);
+			x = (xdir == 1) ? xpos : xpos - scaled_width;
 			y = padding;
-			w = reload.width;
+			w = scaled_width;
 			h = -padding;
 			break;
 
 		case 't': /* throbber/activity indicator */
 			widget = gw->throbber;
-			x = (xdir == 1) ? xpos : xpos - throbber0.width;
+            scaled_width = fb_bitmap_scaled_width(&throbber0, -padding, gw->toolbar);
+			x = (xdir == 1) ? xpos : xpos - scaled_width;
 			y = padding;
-			w = throbber0.width;
+			w = scaled_width;
 			h = -padding;
 			break;
 
