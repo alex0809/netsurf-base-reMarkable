@@ -78,6 +78,17 @@
  */
 #define FRAME_DEPTH 8
 
+/**
+ * minimum scroll width, relative to page size,
+ * that the user has to scroll via pan before anything happens
+ */
+#define MINIMUM_PAN_SCROLL_WIDTH 100
+/**
+ * minimum scroll height, relative to page size,
+ * that the user has to scroll via pan before anything happens
+ */
+#define MINIMUM_PAN_SCROLL_HEIGHT 100
+
 /* Forward declare internal navigation function */
 static nserror browser_window__navigate_internal(
 	struct browser_window *bw, struct browser_fetch_parameters *params);
@@ -2370,6 +2381,10 @@ browser_window_mouse_track_internal(struct browser_window *bw,
 
 		rect.x0 = bw->drag.start_x - x;
 		rect.y0 = bw->drag.start_y - y;
+
+        if (abs(rect.x0) < MINIMUM_PAN_SCROLL_WIDTH && abs(rect.y0) < MINIMUM_PAN_SCROLL_HEIGHT) {
+            return;
+        }
 
 		/* new scroll offsets */
 		rect.x0 += bw->drag.start_scroll_x;
