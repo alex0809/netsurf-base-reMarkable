@@ -27,6 +27,7 @@
 #include <libnsfb_cursor.h>
 
 #include "utils/log.h"
+#include "utils/nsoption.h"
 #include "netsurf/browser_window.h"
 
 #include "framebuffer/gui.h"
@@ -144,7 +145,7 @@ fbtk_enable_oskb(fbtk_widget_t *fbtk)
 	int ww;
 	int wh;
 	fbtk_widget_t *root = fbtk_get_root_widget(fbtk);
-	int furniture_width = 18;
+	int furniture_width = nsoption_int(fb_furniture_size);
 
 	for (kloop=0; kloop < KEYCOUNT; kloop++) {
 		if ((kbdbase[kloop].x + kbdbase[kloop].w) > maxx)
