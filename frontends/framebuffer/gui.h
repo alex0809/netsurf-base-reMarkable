@@ -45,6 +45,8 @@ struct gui_window {
 	struct fbtk_widget_s *browser;
 	struct fbtk_widget_s *toolbar;
 	struct fbtk_widget_s *bottom_right;
+    struct fbtk_widget_s *zoom_in;
+    struct fbtk_widget_s *zoom_out;
 
 	int throbber_index;
 

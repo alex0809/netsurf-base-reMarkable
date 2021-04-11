@@ -58,7 +58,7 @@
 #include "framebuffer/local_history.h"
 
 
-#define NSFB_TOOLBAR_DEFAULT_LAYOUT "blfsrutc"
+#define NSFB_TOOLBAR_DEFAULT_LAYOUT "blfsrutmp"
 
 fbtk_widget_t *fbtk;
 
@@ -1135,6 +1135,28 @@ fb_stop_click(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 }
 
 static int
+fb_zoom_in_click(fbtk_widget_t *widget, fbtk_callback_info *cbi)
+{
+    struct browser_window *bw = cbi->context;
+    if (cbi->event->type != NSFB_EVENT_KEY_UP)
+        return 0;
+
+    browser_window_set_scale(bw, -0.1, false);
+    return 1;
+}
+
+static int
+fb_zoom_out_click(fbtk_widget_t *widget, fbtk_callback_info *cbi)
+{
+    struct browser_window *bw = cbi->context;
+    if (cbi->event->type != NSFB_EVENT_KEY_UP)
+        return 0;
+
+    browser_window_set_scale(bw, 0.1, false);
+    return 1;
+}
+
+static int
 fb_osk_click(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 {
 
@@ -1236,6 +1258,8 @@ fb_localhistory_btn_clik(fbtk_widget_t *widget, fbtk_callback_info *cbi)
  * u - url bar expands to fit remaining space
  * t - throbber/activity indicator
  * c - close the current window
+ * p - zoom in
+ * m - zoom out
  *
  * The default layout is "blfsrut" there should be no more than a
  * single url bar entry or behaviour will be undefined.
@@ -1410,8 +1434,34 @@ create_toolbar(struct gui_window *gw,
 						    &throbber0);
 			gw->throbber = widget;
 			break;
-
-
+        case 'p':/* zoom in */
+            scaled_width = fb_bitmap_scaled_width(&zoom_in_image, -padding, toolbar);
+            widget = fbtk_create_button(toolbar,
+						    (xdir == 1)?xpos : 
+						     xpos - scaled_width,
+						    padding,
+						    scaled_width,
+						    -padding,
+						    frame_col, 
+						    &zoom_in_image,
+                            fb_zoom_in_click,
+                            gw->bw);
+			gw->zoom_out = widget;
+            break;
+        case 'm':/* zoom out */
+            scaled_width = fb_bitmap_scaled_width(&zoom_out_image, -padding, toolbar);
+            widget = fbtk_create_button(toolbar,
+						    (xdir == 1)?xpos : 
+						     xpos - scaled_width,
+						    padding,
+						    scaled_width,
+						    -padding,
+						    frame_col, 
+						    &zoom_out_image,
+                            fb_zoom_out_click,
+                            gw->bw);
+			gw->zoom_in = widget;
+            break;
 		case 'u': /* url bar*/
 			if (xdir == -1) {
 				/* met the u going backwards add url
@@ -1587,6 +1637,23 @@ resize_toolbar(struct gui_window *gw,
 			h = -padding;
 			break;
 
+		case 'p': /* zoom in */
+			widget = gw->zoom_in;
+            scaled_width = fb_bitmap_scaled_width(&zoom_in_image, -padding, gw->toolbar);
+			x = (xdir == 1) ? xpos : xpos - scaled_width;
+			y = padding;
+			w = scaled_width;
+			h = -padding;
+			break;
+
+		case 'm': /* zoom out */
+			widget = gw->zoom_out;
+            scaled_width = fb_bitmap_scaled_width(&zoom_out_image, -padding, gw->toolbar);
+			x = (xdir == 1) ? xpos : xpos - scaled_width;
+			y = padding;
+			w = scaled_width;
+			h = -padding;
+			break;
 
 		case 'u': /* url bar*/
 			if (xdir == -1) {

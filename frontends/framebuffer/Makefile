@@ -111,6 +111,8 @@ FB_IMAGE_caret_image := pointers/caret.png
 FB_IMAGE_menu_image := pointers/menu.png
 FB_IMAGE_progress_image := pointers/progress.png
 FB_IMAGE_move_image := pointers/move.png
+FB_IMAGE_zoom_out_image := pointers/zoom-in.png
+FB_IMAGE_zoom_in_image := pointers/zoom-out.png
 
 FB_IMAGE_throbber0 := throbber/throbber0.png
 FB_IMAGE_throbber1 := throbber/throbber1.png
