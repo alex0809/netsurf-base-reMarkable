@@ -2389,7 +2389,7 @@ browser_window_mouse_track_internal(struct browser_window *bw,
 		rect.x0 = bw->drag.start_x - x;
 		rect.y0 = bw->drag.start_y - y;
 
-        if (abs(rect.x0) < MINIMUM_PAN_SCROLL_WIDTH && abs(rect.y0) < MINIMUM_PAN_SCROLL_HEIGHT) {
+        if (abs(rect.x0) < (MINIMUM_PAN_SCROLL_WIDTH / bw->scale) && abs(rect.y0) < (MINIMUM_PAN_SCROLL_HEIGHT / bw->scale)) {
             return;
         }
 
