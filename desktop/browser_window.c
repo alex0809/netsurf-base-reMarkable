@@ -246,8 +246,15 @@ browser_window_set_selection(struct browser_window *bw,
 static nserror
 browser_window_set_scroll(struct browser_window *bw, const struct rect *rect)
 {
+    // apply the current scaling factor to the rect,
+    struct rect scaled_rect;
+    scaled_rect.x0 = rect->x0 * bw->scale;
+    scaled_rect.x1 = rect->x1 * bw->scale;
+    scaled_rect.y0 = rect->y0 * bw->scale;
+    scaled_rect.y1 = rect->y1 * bw->scale;
+
 	if (bw->window != NULL) {
-		return guit->window->set_scroll(bw->window, rect);
+		return guit->window->set_scroll(bw->window, &scaled_rect);
 	}
 
 	if (bw->scroll_x != NULL) {
