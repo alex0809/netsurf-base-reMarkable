@@ -611,4 +611,11 @@ void fbtk_enable_oskb(fbtk_widget_t *widget);
  */
 void map_osk(void);
 
+/**
+ * hide the osk.
+ *
+ * @return whether the keyboard was opened previously (true) or not
+ */
+bool unmap_osk(void);
+
 #endif

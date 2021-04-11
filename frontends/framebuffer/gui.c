@@ -261,8 +261,12 @@ fb_pan(fbtk_widget_t *widget,
 	x = fbtk_get_absx(widget);
 	y = fbtk_get_absy(widget);
 
+    /* if the OSK is open, first unmap it, then request redraw, then remap */
+    bool osk_was_unmapped = unmap_osk();
+
 	/* if the pan exceeds the viewport size just redraw the whole area */
-	if (bwidget->pany >= height || bwidget->pany <= -height ||
+	if (osk_was_unmapped || 
+        bwidget->pany >= height || bwidget->pany <= -height ||
 	    bwidget->panx >= width || bwidget->panx <= -width) {
 
 		bwidget->scrolly += bwidget->pany;
@@ -273,6 +277,10 @@ fb_pan(fbtk_widget_t *widget,
 		bwidget->panx = 0;
 		bwidget->pany = 0;
 		bwidget->pan_required = false;
+        
+        if (osk_was_unmapped)
+            map_osk();
+
 		return;
 	}
 
@@ -1203,6 +1211,7 @@ fb_scroll_callback(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 static int
 fb_url_enter(void *pw, char *text)
 {
+
 	struct browser_window *bw = pw;
 	nsurl *url;
 	nserror error;
@@ -1969,6 +1978,12 @@ static nserror
 fb_window_invalidate_area(struct gui_window *g, const struct rect *rect)
 {
 	struct browser_widget_s *bwidget = fbtk_get_userpw(g->browser);
+
+	/* invalidating area happens on change of page,
+	 * let's close the on-screen keyboard in that case.
+	 * A hacky way to do it, but it seems to work fine.
+	 */
+	unmap_osk();
 
 	if (rect != NULL) {
 		fb_queue_redraw(g->browser,
