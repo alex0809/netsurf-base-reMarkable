@@ -139,7 +139,6 @@ static int fb_bitmap_scaled_width(struct fbtk_bitmap *bmp, int height, fbtk_widg
 		height = parent->height + height;
 	}
     double scale_factor = (float)height / bmp->height;
-    NSLOG(netsurf, INFO, "scaler factor: %f", scale_factor);
     return bmp->width * scale_factor;
 }
 
