@@ -1980,10 +1980,10 @@ fb_window_invalidate_area(struct gui_window *g, const struct rect *rect)
 	struct browser_widget_s *bwidget = fbtk_get_userpw(g->browser);
 
 	/* invalidating area happens on change of page,
-	 * let's close the on-screen keyboard in that case.
+	 * let's close the on-screen keyboard in that case, and then re-open
 	 * A hacky way to do it, but it seems to work fine.
 	 */
-	unmap_osk();
+	bool osk_was_unmapped = unmap_osk();
 
 	if (rect != NULL) {
 		fb_queue_redraw(g->browser,
@@ -1998,6 +1998,9 @@ fb_window_invalidate_area(struct gui_window *g, const struct rect *rect)
 				fbtk_get_width(g->browser),
 				fbtk_get_height(g->browser));
 	}
+
+    if (osk_was_unmapped) 
+        map_osk();
 	return NSERROR_OK;
 }
 
