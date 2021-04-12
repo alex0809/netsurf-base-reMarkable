@@ -278,8 +278,9 @@ fb_pan(fbtk_widget_t *widget,
 		bwidget->pany = 0;
 		bwidget->pan_required = false;
         
-        if (osk_was_unmapped)
+        if (osk_was_unmapped) {
             map_osk();
+        }
 
 		return;
 	}
@@ -1999,8 +2000,10 @@ fb_window_invalidate_area(struct gui_window *g, const struct rect *rect)
 				fbtk_get_height(g->browser));
 	}
 
-    if (osk_was_unmapped) 
+    if (osk_was_unmapped) {
         map_osk();
+    }
+
 	return NSERROR_OK;
 }
 
