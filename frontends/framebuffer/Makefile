@@ -33,7 +33,13 @@ ifeq ($(NETSURF_FB_FONTLIB),freetype)
   NETSURF_USE_FREETYPE2 := AUTO
   NETSURF_FEATURE_FREETYPE2_CFLAGS := -DFB_USE_FREETYPE
 
-  $(eval $(call pkg_config_find_and_add_enabled,FREETYPE2,freetype2,freetype2))
+  ifeq ($(NETSURF_FREETYPE2_STATIC),YES)
+    NETSURF_USE_FREETYPE2 := YES
+    CFLAGS += $(shell freetype-config --cflags) $(NETSURF_FEATURE_FREETYPE2_CFLAGS)
+    LDFLAGS += "-l:libfreetype.a"
+  else
+    $(eval $(call pkg_config_find_and_add_enabled,FREETYPE2,freetype2,freetype2))
+  endif
 
   # try and use non pkg-config method
   ifeq ($(NETSURF_USE_FREETYPE2),NO)
