@@ -136,11 +136,7 @@ include Makefile.defaults
 -include Makefile.config
 
 # libraries enabled by feature switch without pkgconfig file 
-ifeq ($(NETSURF_LIBJPEG_STATIC),YES)
-    $(eval $(call feature_switch,JPEG,JPEG (libjpeg),-DWITH_JPEG,-l:libjpeg.a,-UWITH_JPEG,))
-else
-    $(eval $(call feature_switch,JPEG,JPEG (libjpeg),-DWITH_JPEG,-ljpeg,-UWITH_JPEG,))
-endif
+$(eval $(call feature_switch,JPEG,JPEG (libjpeg),-DWITH_JPEG,-ljpeg,-UWITH_JPEG,))
 $(eval $(call feature_switch,HARU_PDF,PDF export (haru),-DWITH_PDF_EXPORT,-lhpdf -lpng,-UWITH_PDF_EXPORT,))
 $(eval $(call feature_switch,LIBICONV_PLUG,glibc internal iconv,-DLIBICONV_PLUG,,-ULIBICONV_PLUG,-liconv))
 $(eval $(call feature_switch,DUKTAPE,Javascript (Duktape),,,,,))
