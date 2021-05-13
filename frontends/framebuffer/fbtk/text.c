@@ -18,6 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "nslog/nslog.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -74,8 +75,13 @@ fb_text_font_style(fbtk_widget_t *widget, int *font_height, int *padding,
 	font_style->size = px_to_pt(*font_height * PLOT_STYLE_SCALE);
 	font_style->weight = 400;
 	font_style->flags = FONTF_NONE;
-	font_style->background = widget->bg;
-	font_style->foreground = widget->fg;
+    if (widget->u.text.all_selected) {
+	    font_style->background = widget->fg;
+	    font_style->foreground = widget->bg;
+    } else {
+	    font_style->background = widget->bg;
+	    font_style->foreground = widget->fg;
+    }
 }
 
 /** Text redraw callback.
@@ -121,7 +127,11 @@ fb_redraw_text(fbtk_widget_t *widget, fbtk_callback_info *cbi )
 	/* clear background */
 	if ((widget->bg & 0xFF000000) != 0) {
 		/* transparent polygon filling isnt working so fake it */
-		nsfb_plot_rectangle_fill(root->u.root.fb, &bbox, widget->bg);
+        if (widget->u.text.all_selected) {
+		    nsfb_plot_rectangle_fill(root->u.root.fb, &rect, widget->fg);
+        } else {
+		    nsfb_plot_rectangle_fill(root->u.root.fb, &rect, widget->bg);
+        }
 	}
 
 	/* widget can have a single pixel outline border */
@@ -154,8 +164,8 @@ fb_redraw_text(fbtk_widget_t *widget, fbtk_callback_info *cbi )
 			       widget->u.text.len);
 	}
 
-	if (caret) {
-		/* This widget has caret, so render it */
+	if (caret && !widget->u.text.all_selected) {
+		/* This widget has caret, so render it, unless all text is selected */
 		nsfb_t *nsfb = fbtk_get_nsfb(widget);
 		nsfb_bbox_t line;
 		nsfb_plot_pen_t pen;
@@ -347,6 +357,12 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 
 	switch (value) {
 	case NSFB_KEY_BACKSPACE:
+        if (widget->u.text.all_selected) {
+            fbtk_set_text(widget, "");
+            widget->u.text.all_selected = false;
+            break;
+        }
+
 		if (widget->u.text.idx <= 0)
 			break;
 		memmove(widget->u.text.text + widget->u.text.idx - 1,
@@ -375,6 +391,7 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 
 			caret_moved = true;
 		}
+        widget->u.text.all_selected = false;
 		break;
 
 	case NSFB_KEY_LEFT:
@@ -386,6 +403,7 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 
 			caret_moved = true;
 		}
+        widget->u.text.all_selected = false;
 		break;
 
 	case NSFB_KEY_HOME:
@@ -394,6 +412,7 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 
 			caret_moved = true;
 		}
+        widget->u.text.all_selected = false;
 		break;
 
 	case NSFB_KEY_END:
@@ -402,6 +421,7 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 
 			caret_moved = true;
 		}
+        widget->u.text.all_selected = false;
 		break;
 
 	case NSFB_KEY_PAGEUP:
@@ -438,9 +458,15 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 				widget->u.text.text[widget->u.text.len] = '\0';
 				widget->u.text.width = 0;
 				caret_moved = true;
+                widget->u.text.all_selected = false;
 			}
 			break;
 		}
+
+        if (widget->u.text.all_selected) {
+            fbtk_set_text(widget, "");
+            widget->u.text.all_selected = false;
+        }
 
 		/* allow for new character and null */
 		temp = realloc(widget->u.text.text, widget->u.text.len + 2);
@@ -493,6 +519,20 @@ text_input_click(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 	int border;
 	size_t idx;
 
+    int caret_x, caret_y, caret_h;
+    bool has_caret = false;
+	if (fbtk_get_caret(widget, &caret_x, &caret_y, &caret_h)) {
+		has_caret = true;
+	}
+    if (cbi->event->type == NSFB_EVENT_KEY_DOWN) {
+        /* if the caret was disabled previously = the input is selected initially, then select all text */
+        if (!has_caret) {
+            widget->u.text.all_selected = true;
+        } else {
+            widget->u.text.all_selected = false;
+        }
+    }
+
 	fb_text_font_style(widget, &fh, &border, &font_style);
 
 	widget->u.text.idx = widget->u.text.len;
@@ -523,6 +563,7 @@ static int
 text_input_strip_focus(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 {
 	fbtk_set_caret(widget, false, 0, 0, 0, NULL);
+    widget->u.text.all_selected = false;
 
 	return 0;
 }

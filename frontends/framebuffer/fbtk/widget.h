@@ -181,6 +181,7 @@ struct fbtk_widget_s {
 		struct {
 			char* text;
 			bool outline;
+            bool all_selected; /* whether all text of the widget is selected */
 			fbtk_enter_t enter;
 			void *pw;
 			int idx; /* caret pos in text */
