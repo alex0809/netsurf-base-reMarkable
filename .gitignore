@@ -24,3 +24,5 @@ NetSurf
 core
 nsfb-*
 build
+compile_commands.json
+.cache
