@@ -2315,6 +2315,7 @@ main(int argc, char** argv)
 		.utf8 = framebuffer_utf8_table,
 		.bitmap = framebuffer_bitmap_table,
 		.layout = framebuffer_layout_table,
+        .download = framebuffer_download_table,
 	};
 
         ret = netsurf_register(&framebuffer_table);

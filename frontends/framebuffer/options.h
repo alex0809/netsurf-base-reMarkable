@@ -63,6 +63,8 @@ NSOPTION_STRING(fb_face_monospace_bold, NULL)
 NSOPTION_STRING(fb_face_cursive, NULL)
 NSOPTION_STRING(fb_face_fantasy, NULL)
 
+NSOPTION_STRING(fb_download_directory, NULL)
+
 /*
  * Local Variables:
  * c-basic-offset:8

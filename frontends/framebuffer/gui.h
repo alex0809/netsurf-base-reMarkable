@@ -57,6 +57,8 @@ struct gui_window {
 
 extern struct gui_window *window_list;
 
+extern struct gui_download_table *framebuffer_download_table;
+
 void gui_resize(struct fbtk_widget_s *root, int width, int height);
 
 #endif /* NETSURF_FB_GUI_H */

@@ -175,7 +175,8 @@ $(eval $(foreach V,$(filter FB_FONT_$(NETSURF_FB_FONTLIB)_%,$(.VARIABLES)),$(cal
 
 # S_FRONTEND are sources purely for the framebuffer build
 S_FRONTEND := gui.c framebuffer.c schedule.c bitmap.c fetch.c	\
-	findfile.c corewindow.c local_history.c clipboard.c
+	findfile.c corewindow.c local_history.c clipboard.c \
+	components/component_util.c components/download.c components/remarkable_import.c
 
 # toolkit sources
 S_FRAMEBUFFER_FBTK := fbtk.c event.c fill.c bitmap.c user.c window.c 	\
