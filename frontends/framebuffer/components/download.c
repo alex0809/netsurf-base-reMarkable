@@ -45,7 +45,9 @@ struct gui_download_window {
 
 	fbtk_widget_t *delete_file_button;
 	fbtk_widget_t *show_directory_button;
+#ifdef REMARKABLE
 	fbtk_widget_t *import_remarkable_button;
+#endif
 
 	char *full_path_name;
 	FILE *output_file;
@@ -181,16 +183,18 @@ static void get_path_url_without_filename(const char *path_with_file,
 	strcat(path_without_file, buf);
 }
 
+#ifdef REMARKABLE
 static int
 import_file_button_click(struct fbtk_widget_s *widget, fbtk_callback_info *info)
 {
 	if (info->event->type == NSFB_EVENT_KEY_UP) {
 		struct gui_download_window *dw = info->context;
-        import_window_open(dw->full_path_name, dw->gui);
+		import_window_open(dw->full_path_name, dw->gui);
 		download_window_destroy(dw);
 	}
 	return 0;
 }
+#endif
 
 static int
 delete_button_click(struct fbtk_widget_s *widget, fbtk_callback_info *info)
@@ -442,6 +446,7 @@ gui_download_create(download_context *ctx, struct gui_window *gui)
 	int success_buttons_width = (dw->download_window_widget->width -
 				     ELEMENTS_SPACING * 4) /
 				    3;
+#ifdef REMARKABLE
 	dw->import_remarkable_button = fbtk_create_text_button(
 		dw->download_window_widget,
 		ELEMENTS_SPACING,
@@ -453,8 +458,9 @@ gui_download_create(download_context *ctx, struct gui_window *gui)
 		FB_COLOUR_BLACK,
 		import_file_button_click,
 		dw);
-	fbtk_set_text(dw->import_remarkable_button, "Import file");
+	fbtk_set_text(dw->import_remarkable_button, "Import to reMarkable");
 	fbtk_set_mapping(dw->import_remarkable_button, false);
+#endif
 
 	dw->show_directory_button = fbtk_create_text_button(
 		dw->download_window_widget,
@@ -542,7 +548,9 @@ static void gui_download_done(struct gui_download_window *dw)
 		download_window_recalculate_progress(dw);
 		download_context_destroy(dw->ctx);
 		change_to_close_button(dw);
+#ifdef REMARKABLE
 		fbtk_set_mapping(dw->import_remarkable_button, true);
+#endif
 		fbtk_set_mapping(dw->show_directory_button, true);
 		fbtk_set_mapping(dw->delete_file_button, true);
 	}

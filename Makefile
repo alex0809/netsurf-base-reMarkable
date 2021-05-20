@@ -228,6 +228,11 @@ CFLAGS += -DSTMTEXPR=1
 CXXFLAGS += -DSTMTEXPR=1
 endif
 
+# define REMARKABLE macro if compiling for reMarkable
+ifeq ($(NETSURF_REMARKABLE), YES)
+CFLAGS += -DREMARKABLE
+endif
+
 # We trace during link so that we can determine if a libary changes under us in
 # order to re-link.  This *may* be gcc specific, so may need tweaks in future.
 LDFLAGS += -Wl,--trace

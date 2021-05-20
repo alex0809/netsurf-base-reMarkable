@@ -19,6 +19,12 @@ static const char *CLOSE_BUTTON_TEXT = "Close";
 static const char *IMPORT_BUTTON_TEXT = "Import";
 static const char *RESTART_BUTTON_TEXT = "Restart device now";
 
+static const char *IMPORT_TEMPLATE =
+"{"
+"    \"lastModified\": \"1621170971273\","
+"    \"type\": \"DocumentType\","
+"    \"visibleName\": \"test.pdf\""
+"}";
 
 struct gui_remarkable_import_window {
 	fbtk_widget_t *window_widget;
