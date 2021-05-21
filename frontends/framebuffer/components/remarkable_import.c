@@ -9,6 +9,7 @@
 #include "framebuffer/fbtk.h"
 #include "framebuffer/fbtk/widget.h"
 #include "remarkable_import.h"
+#include "utils/remarkable/xochitl_import.h"
 
 static const char *TITLE_TEXT = "Import to reMarkable (Xochitl)";
 static const char *IMPORT_EXPLANATION_TEXT =
@@ -18,13 +19,6 @@ static const char *IMPORT_COMPLETED_TEXT =
 static const char *CLOSE_BUTTON_TEXT = "Close";
 static const char *IMPORT_BUTTON_TEXT = "Import";
 static const char *RESTART_BUTTON_TEXT = "Restart device now";
-
-static const char *IMPORT_TEMPLATE =
-"{"
-"    \"lastModified\": \"1621170971273\","
-"    \"type\": \"DocumentType\","
-"    \"visibleName\": \"test.pdf\""
-"}";
 
 struct gui_remarkable_import_window {
 	fbtk_widget_t *window_widget;
@@ -42,7 +36,6 @@ struct gui_remarkable_import_window {
 static void
 import_window_destroy(struct gui_remarkable_import_window *window)
 {
-
     free(window);
 }
 
@@ -54,6 +47,13 @@ close_button_click(struct fbtk_widget_s *widget, fbtk_callback_info *info)
 		import_window_destroy(window);
 	}
 	return 0;
+}
+
+static int
+open_button_click(struct fbtk_widget_s *widget, fbtk_callback_info *info)
+{
+    import_file_to_xochitl(NULL);
+    return 0;
 }
 
 void import_window_open(const char *file_path, struct gui_window *gui)

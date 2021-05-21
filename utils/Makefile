@@ -24,3 +24,7 @@ S_UTILS := \
 	utils.c
 
 S_UTILS := $(addprefix utils/,$(S_UTILS))
+
+ifeq ($(NETSURF_REMARKABLE), yes)
+S_UTILS += remarkable/xochitl_import.c
+endif
