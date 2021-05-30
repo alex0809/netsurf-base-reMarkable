@@ -21,10 +21,7 @@ S_UTILS := \
 	url.c \
 	useragent.c \
 	utf8.c \
-	utils.c
+	utils.c \
+	filename_utils.c
 
 S_UTILS := $(addprefix utils/,$(S_UTILS))
-
-ifeq ($(NETSURF_REMARKABLE), yes)
-S_UTILS += remarkable/xochitl_import.c
-endif

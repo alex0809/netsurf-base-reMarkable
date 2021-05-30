@@ -180,7 +180,7 @@ S_FRONTEND := gui.c framebuffer.c schedule.c bitmap.c fetch.c	\
 
 # Add reMarkable-specific sources if it is enabled
 ifeq ($(NETSURF_REMARKABLE), YES)
-S_FRONTEND += components/remarkable_import.c
+  S_FRONTEND += components/remarkable_import.c components/remarkable_xochitl_import.c
 endif
 
 # toolkit sources

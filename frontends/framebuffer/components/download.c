@@ -22,6 +22,7 @@
 #include "utils/nsurl.h"
 #include "component_util.h"
 #include "remarkable_import.h"
+#include "utils/filename_utils.h"
 
 #include "framebuffer/gui.h"
 #include "framebuffer/fbtk.h"
@@ -53,7 +54,7 @@ struct gui_download_window {
 	FILE *output_file;
 
 	const char *mime_type;
-	const char *filename;
+	char *filename;
 
 	unsigned long long progress;
 	unsigned long long total_length;
@@ -67,19 +68,16 @@ struct gui_download_window {
 
 static void download_window_destroy(struct gui_download_window *dw)
 {
-	NSLOG(netsurf, INFO, "destroy");
 	fbtk_widget_t *root;
 	root = fbtk_get_root_widget(dw->download_window_widget);
 	fbtk_destroy_widget(dw->download_window_widget);
 	fbtk_request_redraw(root);
 
-	NSLOG(netsurf, INFO, "destroy free");
 	free(dw->title_text);
 	free(dw->destination_text);
 	free(dw->progress_text);
 	free(dw->full_path_name);
 
-	NSLOG(netsurf, INFO, "destroy dw");
 	free(dw);
 }
 
@@ -144,44 +142,6 @@ static void handle_and_display_error(struct gui_download_window *dw,
 	change_to_close_button(dw);
 }
 
-static const char *get_extension(const char *filename)
-{
-	const char *dot = strrchr(filename, '.');
-	if (!dot || dot == filename)
-		return "";
-	return dot + 1;
-}
-
-static void get_filename_without_extension(const char *filename,
-					   char *filename_without_extension)
-{
-	strcpy(filename_without_extension, filename);
-	char *end = filename_without_extension +
-		    strlen(filename_without_extension);
-	while (end > filename_without_extension && *end != '.') {
-		--end;
-	}
-	if (end > filename_without_extension) {
-		*end = '\0';
-	}
-}
-
-static void get_path_url_without_filename(const char *path_with_file,
-					  char *path_without_file)
-{
-	char buf[PATH_MAX + 10];
-	strcpy(buf, path_with_file);
-	char *end = buf + strlen(buf);
-	while (end > buf && *end != '/') {
-		--end;
-	}
-	if (end > buf) {
-		*end = '\0';
-	}
-
-	strcpy(path_without_file, "file://");
-	strcat(path_without_file, buf);
-}
 
 #ifdef REMARKABLE
 static int
@@ -189,7 +149,7 @@ import_file_button_click(struct fbtk_widget_s *widget, fbtk_callback_info *info)
 {
 	if (info->event->type == NSFB_EVENT_KEY_UP) {
 		struct gui_download_window *dw = info->context;
-		import_window_open(dw->full_path_name, dw->gui);
+		import_window_open(dw->full_path_name, dw->filename, dw->gui);
 		download_window_destroy(dw);
 	}
 	return 0;
@@ -352,7 +312,8 @@ gui_download_create(download_context *ctx, struct gui_window *gui)
 	dw->total_length = download_context_get_total_length(ctx);
 	dw->mime_type = download_context_get_mime_type(ctx);
 	dw->output_file = NULL;
-	dw->filename = download_context_get_filename(ctx);
+    dw->filename = malloc(strlen(download_context_get_filename(ctx) + 1));
+	strcpy(dw->filename, download_context_get_filename(ctx));
 	dw->gui = gui;
 
 	dw->title_text = (char *)malloc(TEXTS_MAX_LENGTH * sizeof(char));

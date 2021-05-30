@@ -228,9 +228,11 @@ CFLAGS += -DSTMTEXPR=1
 CXXFLAGS += -DSTMTEXPR=1
 endif
 
-# define REMARKABLE macro if compiling for reMarkable
 ifeq ($(NETSURF_REMARKABLE), YES)
+# define REMARKABLE macro if compiling for reMarkable
 CFLAGS += -DREMARKABLE
+# add UUID library required for Xochitl import functionality
+LDFLAGS += -luuid
 endif
 
 # We trace during link so that we can determine if a libary changes under us in
