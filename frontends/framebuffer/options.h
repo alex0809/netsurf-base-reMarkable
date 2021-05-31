@@ -64,6 +64,7 @@ NSOPTION_STRING(fb_face_cursive, NULL)
 NSOPTION_STRING(fb_face_fantasy, NULL)
 
 NSOPTION_STRING(fb_download_directory, NULL)
+NSOPTION_STRING(fb_xochitl_restart_command, "systemctl reboot")
 
 /*
  * Local Variables:

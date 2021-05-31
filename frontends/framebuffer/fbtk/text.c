@@ -45,18 +45,19 @@
 /* Lighten a colour by taking seven eights of each channel's intensity
  * and adding a full eighth
  */
-#define brighten_colour(c1)					\
-	(((((7 * ((c1 >> 16) & 0xff)) >> 3) + 32) << 16) |	\
-	 ((((7 * ((c1 >> 8) & 0xff)) >> 3) + 32) << 8) |	\
+#define brighten_colour(c1)                                                    \
+	(((((7 * ((c1 >> 16) & 0xff)) >> 3) + 32) << 16) |                     \
+	 ((((7 * ((c1 >> 8) & 0xff)) >> 3) + 32) << 8) |                       \
 	 ((((7 * (c1 & 0xff)) >> 3) + 32) << 0))
 
 /* Convert pixels to points, assuming a DPI of 90 */
-#define px_to_pt(x) (((x) * 72) / FBTK_DPI)
+#define px_to_pt(x) (((x)*72) / FBTK_DPI)
 
 /* Get a font style for a text input */
-static inline void
-fb_text_font_style(fbtk_widget_t *widget, int *font_height, int *padding,
-		plot_font_style_t *font_style)
+static inline void fb_text_font_style(fbtk_widget_t *widget,
+				      int *font_height,
+				      int *padding,
+				      plot_font_style_t *font_style)
 {
 	if (widget->u.text.outline)
 		*padding = 1;
@@ -75,13 +76,13 @@ fb_text_font_style(fbtk_widget_t *widget, int *font_height, int *padding,
 	font_style->size = px_to_pt(*font_height * PLOT_STYLE_SCALE);
 	font_style->weight = 400;
 	font_style->flags = FONTF_NONE;
-    if (widget->u.text.all_selected) {
-	    font_style->background = widget->fg;
-	    font_style->foreground = widget->bg;
-    } else {
-	    font_style->background = widget->bg;
-	    font_style->foreground = widget->fg;
-    }
+	if (widget->u.text.all_selected) {
+		font_style->background = widget->fg;
+		font_style->foreground = widget->bg;
+	} else {
+		font_style->background = widget->bg;
+		font_style->foreground = widget->fg;
+	}
 }
 
 /** Text redraw callback.
@@ -92,8 +93,7 @@ fb_text_font_style(fbtk_widget_t *widget, int *font_height, int *padding,
  * @param cbi The callback parameters.
  * @return The callback result.
  */
-static int
-fb_redraw_text(fbtk_widget_t *widget, fbtk_callback_info *cbi )
+static int fb_redraw_text(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 {
 	nsfb_bbox_t bbox;
 	nsfb_bbox_t rect;
@@ -104,11 +104,9 @@ fb_redraw_text(fbtk_widget_t *widget, fbtk_callback_info *cbi )
 	int padding;
 	int scroll = 0;
 	bool caret = false;
-	struct redraw_context ctx = {
-		.interactive = true,
-		.background_images = true,
-		.plot = &fb_plotters
-	};
+	struct redraw_context ctx = {.interactive = true,
+				     .background_images = true,
+				     .plot = &fb_plotters};
 
 	fb_text_font_style(widget, &fh, &padding, &font_style);
 
@@ -127,19 +125,23 @@ fb_redraw_text(fbtk_widget_t *widget, fbtk_callback_info *cbi )
 	/* clear background */
 	if ((widget->bg & 0xFF000000) != 0) {
 		/* transparent polygon filling isnt working so fake it */
-        if (widget->u.text.all_selected) {
-		    nsfb_plot_rectangle_fill(root->u.root.fb, &rect, widget->fg);
-        } else {
-		    nsfb_plot_rectangle_fill(root->u.root.fb, &rect, widget->bg);
-        }
+		if (widget->u.text.all_selected) {
+			nsfb_plot_rectangle_fill(root->u.root.fb,
+						 &rect,
+						 widget->fg);
+		} else {
+			nsfb_plot_rectangle_fill(root->u.root.fb,
+						 &rect,
+						 widget->bg);
+		}
 	}
 
 	/* widget can have a single pixel outline border */
 	if (widget->u.text.outline) {
 		rect.x1--;
 		rect.y1--;
-		nsfb_plot_rectangle(root->u.root.fb, &rect, 1,
-				0x00000000, false, false);
+		nsfb_plot_rectangle(
+			root->u.root.fb, &rect, 1, 0x00000000, false, false);
 	}
 
 	if (widget->u.text.text != NULL) {
@@ -153,19 +155,21 @@ fb_redraw_text(fbtk_widget_t *widget, fbtk_callback_info *cbi )
 
 		if (caret && widget->width - padding - padding < caret_x) {
 			scroll = (widget->width - padding - padding) - caret_x;
-			x +=  scroll;
+			x += scroll;
 		}
 
 		/* Call the fb text plotting, baseline is 3/4 down the font */
 		ctx.plot->text(&ctx,
 			       &font_style,
-			       x, y,
+			       x,
+			       y,
 			       widget->u.text.text,
 			       widget->u.text.len);
 	}
 
 	if (caret && !widget->u.text.all_selected) {
-		/* This widget has caret, so render it, unless all text is selected */
+		/* This widget has caret, so render it, unless all text is
+		 * selected */
 		nsfb_t *nsfb = fbtk_get_nsfb(widget);
 		nsfb_bbox_t line;
 		nsfb_plot_pen_t pen;
@@ -216,8 +220,7 @@ static int fb_destroy_text(fbtk_widget_t *widget, fbtk_callback_info *cbi)
  * @param cbi The callback parameters.
  * @return The callback result.
  */
-static int
-fb_redraw_text_button(fbtk_widget_t *widget, fbtk_callback_info *cbi )
+static int fb_redraw_text_button(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 {
 	nsfb_bbox_t bbox;
 	nsfb_bbox_t rect;
@@ -227,11 +230,9 @@ fb_redraw_text_button(fbtk_widget_t *widget, fbtk_callback_info *cbi )
 	int fh;
 	int border;
 	fbtk_widget_t *root = fbtk_get_root_widget(widget);
-	struct redraw_context ctx = {
-		.interactive = true,
-		.background_images = true,
-		.plot = &fb_plotters
-	};
+	struct redraw_context ctx = {.interactive = true,
+				     .background_images = true,
+				     .plot = &fb_plotters};
 
 	fb_text_font_style(widget, &fh, &border, &font_style);
 
@@ -292,8 +293,7 @@ fb_redraw_text_button(fbtk_widget_t *widget, fbtk_callback_info *cbi )
 	return 0;
 }
 
-static void
-fb_text_input_remove_caret_cb(fbtk_widget_t *widget)
+static void fb_text_input_remove_caret_cb(fbtk_widget_t *widget)
 {
 	int c_x, c_y, c_h;
 
@@ -308,8 +308,7 @@ fb_text_input_remove_caret_cb(fbtk_widget_t *widget)
  * @param cbi The callback parameters.
  * @return The callback result.
  */
-static int
-text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
+static int text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 {
 	int value;
 	static fbtk_modifier_type modifier = FBTK_MOD_CLEAR;
@@ -324,7 +323,7 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 	if (cbi->event == NULL) {
 		/* gain focus */
 		if (widget->u.text.text == NULL)
-			widget->u.text.text = calloc(1,1);
+			widget->u.text.text = calloc(1, 1);
 
 		return 0;
 	}
@@ -357,23 +356,25 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 
 	switch (value) {
 	case NSFB_KEY_BACKSPACE:
-        if (widget->u.text.all_selected) {
-            fbtk_set_text(widget, "");
-            widget->u.text.all_selected = false;
-            break;
-        }
+		if (widget->u.text.all_selected) {
+			fbtk_set_text(widget, "");
+			widget->u.text.all_selected = false;
+			break;
+		}
 
 		if (widget->u.text.idx <= 0)
 			break;
 		memmove(widget->u.text.text + widget->u.text.idx - 1,
-				widget->u.text.text + widget->u.text.idx,
-				widget->u.text.len - widget->u.text.idx);
+			widget->u.text.text + widget->u.text.idx,
+			widget->u.text.len - widget->u.text.idx);
 		widget->u.text.idx--;
 		widget->u.text.len--;
 		widget->u.text.text[widget->u.text.len] = 0;
 
-		fb_font_width(&font_style, widget->u.text.text,
-				widget->u.text.len, &widget->u.text.width);
+		fb_font_width(&font_style,
+			      widget->u.text.text,
+			      widget->u.text.len,
+			      &widget->u.text.width);
 
 		caret_moved = true;
 		break;
@@ -391,7 +392,7 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 
 			caret_moved = true;
 		}
-        widget->u.text.all_selected = false;
+		widget->u.text.all_selected = false;
 		break;
 
 	case NSFB_KEY_LEFT:
@@ -403,7 +404,7 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 
 			caret_moved = true;
 		}
-        widget->u.text.all_selected = false;
+		widget->u.text.all_selected = false;
 		break;
 
 	case NSFB_KEY_HOME:
@@ -412,7 +413,7 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 
 			caret_moved = true;
 		}
-        widget->u.text.all_selected = false;
+		widget->u.text.all_selected = false;
 		break;
 
 	case NSFB_KEY_END:
@@ -421,7 +422,7 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 
 			caret_moved = true;
 		}
-        widget->u.text.all_selected = false;
+		widget->u.text.all_selected = false;
 		break;
 
 	case NSFB_KEY_PAGEUP:
@@ -458,15 +459,15 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 				widget->u.text.text[widget->u.text.len] = '\0';
 				widget->u.text.width = 0;
 				caret_moved = true;
-                widget->u.text.all_selected = false;
+				widget->u.text.all_selected = false;
 			}
 			break;
 		}
 
-        if (widget->u.text.all_selected) {
-            fbtk_set_text(widget, "");
-            widget->u.text.all_selected = false;
-        }
+		if (widget->u.text.all_selected) {
+			fbtk_set_text(widget, "");
+			widget->u.text.all_selected = false;
+		}
 
 		/* allow for new character and null */
 		temp = realloc(widget->u.text.text, widget->u.text.len + 2);
@@ -476,28 +477,33 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 
 		widget->u.text.text = temp;
 		memmove(widget->u.text.text + widget->u.text.idx + 1,
-				widget->u.text.text + widget->u.text.idx,
-				widget->u.text.len - widget->u.text.idx);
-		widget->u.text.text[widget->u.text.idx] =
-				fbtk_keycode_to_ucs4(value, modifier);
+			widget->u.text.text + widget->u.text.idx,
+			widget->u.text.len - widget->u.text.idx);
+		widget->u.text.text[widget->u.text.idx] = fbtk_keycode_to_ucs4(
+			value, modifier);
 		widget->u.text.idx++;
 		widget->u.text.len++;
 		widget->u.text.text[widget->u.text.len] = '\0';
 
-		fb_font_width(&font_style, widget->u.text.text,
-				widget->u.text.len, &widget->u.text.width);
+		fb_font_width(&font_style,
+			      widget->u.text.text,
+			      widget->u.text.len,
+			      &widget->u.text.width);
 		caret_moved = true;
 		break;
 	}
 
 	if (caret_moved) {
-		fb_font_width(&font_style, widget->u.text.text,
-				widget->u.text.idx, &widget->u.text.idx_offset);
-		fbtk_set_caret(widget, true,
-				widget->u.text.idx_offset + border,
-				border,
-				widget->height - border - border,
-				fb_text_input_remove_caret_cb);
+		fb_font_width(&font_style,
+			      widget->u.text.text,
+			      widget->u.text.idx,
+			      &widget->u.text.idx_offset);
+		fbtk_set_caret(widget,
+			       true,
+			       widget->u.text.idx_offset + border,
+			       border,
+			       widget->height - border - border,
+			       fb_text_input_remove_caret_cb);
 	}
 
 	fbtk_request_redraw(widget);
@@ -511,42 +517,45 @@ text_input(fbtk_widget_t *widget, fbtk_callback_info *cbi)
  * @param cbi The callback parameters.
  * @return The callback result.
  */
-static int
-text_input_click(fbtk_widget_t *widget, fbtk_callback_info *cbi)
+static int text_input_click(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 {
 	plot_font_style_t font_style;
 	int fh;
 	int border;
 	size_t idx;
 
-    int caret_x, caret_y, caret_h;
-    bool has_caret = false;
+	int caret_x, caret_y, caret_h;
+	bool has_caret = false;
 	if (fbtk_get_caret(widget, &caret_x, &caret_y, &caret_h)) {
 		has_caret = true;
 	}
-    if (cbi->event->type == NSFB_EVENT_KEY_DOWN) {
-        /* if the caret was disabled previously = the input is selected initially, then select all text */
-        if (!has_caret) {
-            widget->u.text.all_selected = true;
-        } else {
-            widget->u.text.all_selected = false;
-        }
-    }
+	if (cbi->event->type == NSFB_EVENT_KEY_DOWN) {
+		/* if the caret was disabled previously = the input is selected
+		 * initially, then select all text */
+		if (!has_caret) {
+			widget->u.text.all_selected = true;
+		} else {
+			widget->u.text.all_selected = false;
+		}
+	}
 
 	fb_text_font_style(widget, &fh, &border, &font_style);
 
 	widget->u.text.idx = widget->u.text.len;
 
-	fb_font_position(&font_style, widget->u.text.text,
-			widget->u.text.len, cbi->x - border,
-			&idx,
-			&widget->u.text.idx_offset);
+	fb_font_position(&font_style,
+			 widget->u.text.text,
+			 widget->u.text.len,
+			 cbi->x - border,
+			 &idx,
+			 &widget->u.text.idx_offset);
 	widget->u.text.idx = idx;
-	fbtk_set_caret(widget, true,
-			widget->u.text.idx_offset + border,
-			border,
-			widget->height - border - border,
-			fb_text_input_remove_caret_cb);
+	fbtk_set_caret(widget,
+		       true,
+		       widget->u.text.idx_offset + border,
+		       border,
+		       widget->height - border - border,
+		       fb_text_input_remove_caret_cb);
 
 	fbtk_request_redraw(widget);
 
@@ -563,14 +572,13 @@ static int
 text_input_strip_focus(fbtk_widget_t *widget, fbtk_callback_info *cbi)
 {
 	fbtk_set_caret(widget, false, 0, 0, 0, NULL);
-    widget->u.text.all_selected = false;
+	widget->u.text.all_selected = false;
 
 	return 0;
 }
 
 /* exported function documented in fbtk.h */
-void
-fbtk_writable_text(fbtk_widget_t *widget, fbtk_enter_t enter, void *pw)
+void fbtk_writable_text(fbtk_widget_t *widget, fbtk_enter_t enter, void *pw)
 {
 	widget->u.text.enter = enter;
 	widget->u.text.pw = pw;
@@ -579,8 +587,7 @@ fbtk_writable_text(fbtk_widget_t *widget, fbtk_enter_t enter, void *pw)
 }
 
 /* exported function documented in fbtk.h */
-void
-fbtk_set_text(fbtk_widget_t *widget, const char *text)
+void fbtk_set_text(fbtk_widget_t *widget, const char *text)
 {
 	plot_font_style_t font_style;
 	int c_x, c_y, c_h;
@@ -600,37 +607,42 @@ fbtk_set_text(fbtk_widget_t *widget, const char *text)
 
 
 	fb_text_font_style(widget, &fh, &border, &font_style);
-	fb_font_width(&font_style, widget->u.text.text,
-			widget->u.text.len, &widget->u.text.width);
-	fb_font_width(&font_style, widget->u.text.text,
-			widget->u.text.idx, &widget->u.text.idx_offset);
+	fb_font_width(&font_style,
+		      widget->u.text.text,
+		      widget->u.text.len,
+		      &widget->u.text.width);
+	fb_font_width(&font_style,
+		      widget->u.text.text,
+		      widget->u.text.idx,
+		      &widget->u.text.idx_offset);
 
 	if (fbtk_get_caret(widget, &c_x, &c_y, &c_h)) {
 		/* Widget has caret; move it to end of new string */
-		fbtk_set_caret(widget, true,
-				widget->u.text.idx_offset + border,
-				border,
-				widget->height - border - border,
-				fb_text_input_remove_caret_cb);
+		fbtk_set_caret(widget,
+			       true,
+			       widget->u.text.idx_offset + border,
+			       border,
+			       widget->height - border - border,
+			       fb_text_input_remove_caret_cb);
 	}
 
 	fbtk_request_redraw(widget);
 }
 
 /* exported function documented in fbtk.h */
-fbtk_widget_t *
-fbtk_create_text(fbtk_widget_t *parent,
-		 int x,
-		 int y,
-		 int width,
-		 int height,
-		 colour bg,
-		 colour fg,
-		 bool outline)
+fbtk_widget_t *fbtk_create_text(fbtk_widget_t *parent,
+				int x,
+				int y,
+				int width,
+				int height,
+				colour bg,
+				colour fg,
+				bool outline)
 {
 	fbtk_widget_t *neww;
 
-	neww = fbtk_widget_new(parent, FB_WIDGET_TYPE_TEXT, x, y, width, height);
+	neww = fbtk_widget_new(
+		parent, FB_WIDGET_TYPE_TEXT, x, y, width, height);
 	neww->fg = fg;
 	neww->bg = bg;
 	neww->mapped = true;
@@ -643,21 +655,21 @@ fbtk_create_text(fbtk_widget_t *parent,
 }
 
 /* exported function documented in fbtk.h */
-fbtk_widget_t *
-fbtk_create_writable_text(fbtk_widget_t *parent,
-			  int x,
-			  int y,
-			  int width,
-			  int height,
-			  colour bg,
-			  colour fg,
-			  bool outline,
-			  fbtk_enter_t enter,
-			  void *pw)
+fbtk_widget_t *fbtk_create_writable_text(fbtk_widget_t *parent,
+					 int x,
+					 int y,
+					 int width,
+					 int height,
+					 colour bg,
+					 colour fg,
+					 bool outline,
+					 fbtk_enter_t enter,
+					 void *pw)
 {
 	fbtk_widget_t *neww;
 
-	neww = fbtk_widget_new(parent, FB_WIDGET_TYPE_TEXT, x, y, width, height);
+	neww = fbtk_widget_new(
+		parent, FB_WIDGET_TYPE_TEXT, x, y, width, height);
 	neww->fg = fg;
 	neww->bg = bg;
 	neww->mapped = true;
@@ -669,27 +681,28 @@ fbtk_create_writable_text(fbtk_widget_t *parent,
 	fbtk_set_handler(neww, FBTK_CBT_REDRAW, fb_redraw_text, NULL);
 	fbtk_set_handler(neww, FBTK_CBT_DESTROY, fb_destroy_text, NULL);
 	fbtk_set_handler(neww, FBTK_CBT_CLICK, text_input_click, pw);
-	fbtk_set_handler(neww, FBTK_CBT_STRIP_FOCUS, text_input_strip_focus, NULL);
+	fbtk_set_handler(
+		neww, FBTK_CBT_STRIP_FOCUS, text_input_strip_focus, NULL);
 	fbtk_set_handler(neww, FBTK_CBT_INPUT, text_input, neww);
 
 	return neww;
 }
 
 /* exported function documented in fbtk.h */
-fbtk_widget_t *
-fbtk_create_text_button(fbtk_widget_t *parent,
-			int x,
-			int y,
-			int width,
-			int height,
-			colour bg,
-			colour fg,
-			fbtk_callback click,
-			void *pw)
+fbtk_widget_t *fbtk_create_text_button(fbtk_widget_t *parent,
+				       int x,
+				       int y,
+				       int width,
+				       int height,
+				       colour bg,
+				       colour fg,
+				       fbtk_callback click,
+				       void *pw)
 {
 	fbtk_widget_t *neww;
 
-	neww = fbtk_widget_new(parent, FB_WIDGET_TYPE_TEXT, x, y, width, height);
+	neww = fbtk_widget_new(
+		parent, FB_WIDGET_TYPE_TEXT, x, y, width, height);
 	neww->fg = fg;
 	neww->bg = bg;
 	neww->mapped = true;
@@ -699,7 +712,8 @@ fbtk_create_text_button(fbtk_widget_t *parent,
 	fbtk_set_handler(neww, FBTK_CBT_REDRAW, fb_redraw_text_button, NULL);
 	fbtk_set_handler(neww, FBTK_CBT_DESTROY, fb_destroy_text, NULL);
 	fbtk_set_handler(neww, FBTK_CBT_CLICK, click, pw);
-	fbtk_set_handler(neww, FBTK_CBT_POINTERENTER, fbtk_set_ptr, &hand_image);
+	fbtk_set_handler(
+		neww, FBTK_CBT_POINTERENTER, fbtk_set_ptr, &hand_image);
 
 	return neww;
 }

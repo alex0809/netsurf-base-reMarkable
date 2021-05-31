@@ -6,6 +6,7 @@
 #include <limits.h>
 
 #include "libnsfb.h"
+#include "utils/nsoption.h"
 #include "libnsfb_event.h"
 #include "component_util.h"
 #include "framebuffer/gui.h"
@@ -15,20 +16,20 @@
 #include "remarkable_xochitl_import.h"
 #include "utils/filename_utils.h"
 
-static const char *TITLE_TEXT = "Import to reMarkable (Xochitl)";
+static const char *TITLE_TEXT = "Import file";
 static const char *TITLE_TEXT_COMPLETED = "Import done";
 static const char *TITLE_TEXT_FAILED = "Import failed";
 
 static const char *IMPORT_EXPLANATION_TEXT =
-	"Import the file \"%s\" as a reMarkable document?";
+	"Import the file as a reMarkable document?";
+static const char *FILENAME_TEXT = "File: %s";
 static const char *IMPORT_COMPLETED_TEXT =
-	"File \"%s\" has been imported, and will become visible after Xochitl restart";
-static const char *IMPORT_FAILED_TEXT =
-	"Import for file \"%s\" failed (error code: %d)";
+	"File has been imported, and will become visible after Xochitl restart";
+static const char *IMPORT_FAILED_TEXT = "Import failed (error code: %d)";
 static const char *INVALID_FORMAT_TEXT =
 	"Can't import: only .epub and .pdf files are supported";
 static const char *CLOSE_BUTTON_TEXT = "Close";
-static const char *IMPORT_BUTTON_TEXT = "Import";
+static const char *IMPORT_BUTTON_TEXT = "Confirm import";
 static const char *IMPORT_BUTTON_TEXT_FAILED = "Retry import";
 static const char *RESTART_BUTTON_TEXT = "Restart";
 
@@ -36,6 +37,7 @@ struct gui_remarkable_import_window {
 	fbtk_widget_t *window_widget;
 
 	fbtk_widget_t *title_widget;
+	fbtk_widget_t *filename_widget;
 	fbtk_widget_t *explanation_widget;
 
 	fbtk_widget_t *close_button_widget;
@@ -95,17 +97,15 @@ import_button_click(struct fbtk_widget_s *widget, fbtk_callback_info *info)
 			(strlen(window->display_name) + 1) * sizeof(char));
 		get_filename_without_extension(window->display_name,
 					       filename_without_extension);
-		int import_result = import_file_to_xochitl(window->file_path,
-							   filename_without_extension,
-							   type);
+		int import_result = import_file_to_xochitl(
+			window->file_path, filename_without_extension, type);
 		if (import_result != NSERROR_OK) {
-			size_t failed_text_len = strlen(IMPORT_FAILED_TEXT) * 3;
+			size_t failed_text_len = strlen(IMPORT_FAILED_TEXT) + 5;
 			char *failed_text = malloc(failed_text_len *
 						   sizeof(char));
 			snprintf(failed_text,
 				 failed_text_len,
 				 IMPORT_FAILED_TEXT,
-				 window->display_name,
 				 import_result);
 			fbtk_set_text(window->explanation_widget, failed_text);
 			free(failed_text);
@@ -113,17 +113,8 @@ import_button_click(struct fbtk_widget_s *widget, fbtk_callback_info *info)
 			fbtk_set_text(window->import_button_widget,
 				      IMPORT_BUTTON_TEXT_FAILED);
 		} else {
-			size_t completed_text_len =
-				strlen(IMPORT_COMPLETED_TEXT) * 3;
-			char *completed_text = malloc(completed_text_len *
-						      sizeof(char));
-			snprintf(completed_text,
-				 completed_text_len,
-				 IMPORT_COMPLETED_TEXT,
-				 window->display_name);
 			fbtk_set_text(window->explanation_widget,
-				      completed_text);
-			free(completed_text);
+				      IMPORT_COMPLETED_TEXT);
 			fbtk_set_text(window->title_widget,
 				      TITLE_TEXT_COMPLETED);
 
@@ -139,8 +130,8 @@ static int
 restart_button_click(struct fbtk_widget_s *widget, fbtk_callback_info *info)
 {
 	if (info->event->type == NSFB_EVENT_KEY_UP) {
-        // TODO load from parameter
-		system("systemctl restart remux");
+		// TODO load from parameter
+		system(nsoption_charp(fb_xochitl_restart_command));
 	}
 	return 0;
 }
@@ -214,7 +205,7 @@ void import_window_open(const char *file_path,
 		window);
 	fbtk_set_text(window->restart_button_widget, RESTART_BUTTON_TEXT);
 
-	window->explanation_widget = fbtk_create_text(
+	window->filename_widget = fbtk_create_text(
 		window->window_widget,
 		ELEMENTS_SPACING,
 		ELEMENTS_SPACING * 2 + LARGE_TEXT_HEIGHT,
@@ -223,14 +214,25 @@ void import_window_open(const char *file_path,
 		FB_COLOUR_WHITE,
 		FB_COLOUR_BLACK,
 		false);
-	size_t explanation_text_len = strlen(IMPORT_EXPLANATION_TEXT) * 3;
-	char *explanation_text = malloc(explanation_text_len * sizeof(char));
-	snprintf(explanation_text,
-		 explanation_text_len,
-		 IMPORT_EXPLANATION_TEXT,
+	size_t filename_text_len = strlen(FILENAME_TEXT) + 1 + PATH_MAX;
+	char *filename_text = malloc(filename_text_len * sizeof(char));
+	snprintf(filename_text,
+		 filename_text_len,
+		 FILENAME_TEXT,
 		 window->display_name);
-	fbtk_set_text(window->explanation_widget, explanation_text);
-	free(explanation_text);
+	fbtk_set_text(window->filename_widget, filename_text);
+	free(filename_text);
+
+	window->explanation_widget = fbtk_create_text(
+		window->window_widget,
+		ELEMENTS_SPACING,
+		ELEMENTS_SPACING * 3 + LARGE_TEXT_HEIGHT + SMALL_TEXT_HEIGHT,
+		window->window_widget->width - ELEMENTS_SPACING * 2,
+		SMALL_TEXT_HEIGHT,
+		FB_COLOUR_WHITE,
+		FB_COLOUR_BLACK,
+		false);
+	fbtk_set_text(window->explanation_widget, IMPORT_EXPLANATION_TEXT);
 
 	window->title_widget = fbtk_create_text(window->window_widget,
 						ELEMENTS_SPACING,
